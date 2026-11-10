@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="robots" content="noindex,nofollow">
+  <meta name="theme-color" content="#06131b">
+  <title>Ghanizada Panel</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%23ffb02e'/%3E%3Cpath d='M14 40c6-14 12-14 18 0s12 14 18 0' stroke='%2306131b' stroke-width='6' fill='none' stroke-linecap='round'/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+
+  <!-- Sign in -->
+  <main id="login" class="login" hidden>
+    <form class="login-card" id="loginForm" autocomplete="off">
+      <div class="brand brand-lg">
+        <svg viewBox="0 0 64 64" width="44" height="44" aria-hidden="true"><rect width="64" height="64" rx="16" fill="#ffb02e"/><path d="M14 40c6-14 12-14 18 0s12 14 18 0" stroke="#06131b" stroke-width="6" fill="none" stroke-linecap="round"/></svg>
+        <span>Ghanizada Panel</span>
+      </div>
+      <h1>Sign in to see your configs</h1>
+      <label for="pw">Panel password</label>
+      <div class="pw-wrap">
+        <input id="pw" type="password" placeholder="Enter password" required autofocus>
+        <button type="button" id="togglePw" class="ghost icon-btn" aria-label="Show password">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>
+        </button>
+      </div>
+      <p class="error" id="loginError" role="alert" hidden></p>
+      <button class="primary" type="submit">Unlock panel</button>
+    </form>
+  </main>
+
+  <!-- Dashboard -->
+  <div id="app" hidden>
+    <header class="top">
+      <div class="brand">
+        <svg viewBox="0 0 64 64" width="30" height="30" aria-hidden="true"><rect width="64" height="64" rx="16" fill="#ffb02e"/><path d="M14 40c6-14 12-14 18 0s12 14 18 0" stroke="#06131b" stroke-width="6" fill="none" stroke-linecap="round"/></svg>
+        <span>Ghanizada Panel</span>
+      </div>
+      <button class="ghost" id="logout">Sign out</button>
+    </header>
+
+    <section class="hero">
+      <div class="hero-text">
+        <p class="hero-label">Your Cloud Run endpoint</p>
+        <button class="host" id="hostBtn" title="Copy host">
+          <span id="hostText">…</span>
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 0 1 2-2h9"/></svg>
+        </button>
+        <ul class="chips">
+          <li id="chipStatus"><i class="dot"></i><span>Checking…</span></li>
+          <li>Port <b id="chipPort">443</b></li>
+          <li>TLS</li>
+          <li>WebSocket</li>
+        </ul>
+      </div>
+
+      <svg class="route" viewBox="0 0 420 120" role="img" aria-label="Traffic goes from your device through Cloud Run to the internet">
+        <path id="routePath" d="M40 60 H210 H380" fill="none" stroke="#1d3b4d" stroke-width="3" stroke-linecap="round"/>
+        <path d="M40 60 H210 H380" fill="none" stroke="#ffb02e" stroke-width="3" stroke-linecap="round" stroke-dasharray="6 14" class="flow"/>
+        <circle r="6" fill="#ffb02e" class="packet"><animateMotion dur="3.2s" repeatCount="indefinite" path="M40 60 H210 H380"/></circle>
+        <g class="node"><circle cx="40" cy="60" r="20"/><rect x="30" y="49" width="20" height="22" rx="4"/><circle cx="40" cy="66" r="1.6" class="fill"/></g>
+        <g class="node mid"><circle cx="210" cy="60" r="26"/><path d="M196 66a8 8 0 0 1 2-15 11 11 0 0 1 21-2 9 9 0 0 1 5 17z" /></g>
+        <g class="node"><circle cx="380" cy="60" r="20"/><circle cx="380" cy="60" r="9" class="line"/><path d="M371 60h18M380 51c-4 4-4 14 0 18M380 51c4 4 4 14 0 18" class="line"/></g>
+        <text x="40" y="104" text-anchor="middle">You</text>
+        <text x="210" y="108" text-anchor="middle">Cloud Run</text>
+        <text x="380" y="104" text-anchor="middle">Internet</text>
+      </svg>
+    </section>
+
+    <main class="content">
+      <div class="tabs" role="tablist" aria-label="Protocol">
+        <button role="tab" data-id="vless" aria-selected="true">VLESS</button>
+        <button role="tab" data-id="vmess" aria-selected="false">VMess</button>
+        <button role="tab" data-id="trojan" aria-selected="false">Trojan</button>
+      </div>
+
+      <section class="panel" id="panel" aria-live="polite">
+        <div class="qr-col">
+          <div class="qr" id="qr" aria-label="QR code"></div>
+          <p class="hint">Scan with v2rayNG, Hiddify, NekoBox, Streisand or Shadowrocket.</p>
+          <div class="qr-actions">
+            <button class="primary" id="copyLink">Copy link</button>
+            <button class="ghost" id="saveQr">Save QR</button>
+          </div>
+        </div>
+
+        <div class="data-col">
+          <h2 id="protoTitle">VLESS</h2>
+          <dl id="fields" class="fields"></dl>
+          <label class="link-label" for="linkBox">Share link</label>
+          <textarea id="linkBox" readonly rows="4" spellcheck="false"></textarea>
+        </div>
+      </section>
+
+      <div class="bulk">
+        <button class="ghost" id="copyAll">Copy all three links</button>
+        <span class="muted">Paste them into your client’s “Import from clipboard”.</span>
+      </div>
+    </main>
+
+    <footer class="foot">Keep this page private. Anyone with these links can use your tunnel.</footer>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script src="/app.js"></script>
+</body>
+</html>
