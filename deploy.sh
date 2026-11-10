@@ -12,20 +12,14 @@
 #   DRY_RUN=1             show what would run, deploy nothing
 set -euo pipefail
 
+# If anything fails, say where
+trap 'echo; echo "Stopped at line $LINENO (exit code $?). Nothing was deployed." >&2' ERR
+
 SERVICE="${SERVICE:-ghanizada-panel}"
 MAX_INSTANCES="${MAX_INSTANCES:-4}"
-INPUT="${INPUT:-/dev/tty}"   # where answers are read from
 
-# Open the input once, so every question reads the next line
-exec 3< "$INPUT" 2>/dev/null || exec 3<&0
-
-# ask PROMPT -> prints the answer (empty if none)
-ask() {
-  local v=""
-  printf '%s' "$1" >&2
-  read -r -u 3 v || v=""
-  printf '%s' "$v"
-}
+# Answers come from the terminal. INPUT is only for testing with a file.
+if [ -n "${INPUT:-}" ]; then exec < "$INPUT"; fi
 
 # Cloud Run regions. Update this list if Google adds new ones.
 REGION_LIST=(
@@ -52,6 +46,14 @@ MEM_VALUES=(256Mi 512Mi 1Gi 2Gi 4Gi 8Gi)
 MEM_MB=(256 512 1024 2048 4096 8192)
 
 # ---------- helpers ----------
+
+# ask PROMPT -> prints the answer (empty if none)
+ask() {
+  local v=""
+  printf '%s' "$1" >&2
+  read -r v || v=""
+  printf '%s\n' "$v"
+}
 
 # choose TITLE DEFAULT_NUMBER ITEM...   -> sets CHOICE (0-based index)
 choose() {
@@ -145,15 +147,17 @@ echo "  CPU     : $CPU vCPU"
 echo "  RAM     : $MEMORY"
 echo "  Max instances: $MAX_INSTANCES"
 ans="$(ask "Deploy now? [Y/n]: ")"
-echo
 case "${ans:-y}" in
   y|Y|yes|YES) ;;
   *) echo "Cancelled."; exit 0 ;;
 esac
 
 # ---------- 6. deploy ----------
+echo
+echo "Enabling Google Cloud services (this can take a minute)..."
 run gcloud services enable run.googleapis.com cloudbuild.googleapis.com artifactregistry.googleapis.com
 
+echo "Deploying $SERVICE to $REGION. Building the container takes a few minutes..."
 run gcloud run deploy "$SERVICE" \
   --source . \
   --region "$REGION" \
