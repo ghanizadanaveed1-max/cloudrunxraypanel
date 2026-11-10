@@ -22,6 +22,36 @@
     toast(msg);
   }
 
+  const ENGINE_TEXT = { running: 'Online', starting: 'Starting…', restarting: 'Restarting…', missing: 'Xray not installed' };
+  const MAX_RETRIES = 10;
+  let retryTimer = null, retries = 0;
+
+  function download(blob, name) {
+    const a = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+
+  // Convert the QR SVG into a PNG (white background, 1024 px square)
+  function svgToPng(svg, size = 1024) {
+    return new Promise((resolve, reject) => {
+      const url = URL.createObjectURL(new Blob([svg], { type: 'image/svg+xml' }));
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = canvas.height = size;
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, size, size);
+        ctx.drawImage(img, 0, 0, size, size);
+        URL.revokeObjectURL(url);
+        canvas.toBlob((b) => (b ? resolve(b) : reject(new Error('PNG failed'))), 'image/png');
+      };
+      img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('SVG failed')); };
+      img.src = url;
+    });
+  }
+
   /* ---------- auth ---------- */
   function showLogin() { app.hidden = true; login.hidden = false; $('#pw').focus(); }
   function showApp() { login.hidden = true; app.hidden = false; }
@@ -48,21 +78,31 @@
 
   $('#logout').addEventListener('click', async () => {
     await fetch('/api/logout', { method: 'POST' });
-    data = null; showLogin();
+    data = null; clearTimeout(retryTimer); retries = 0; showLogin();
   });
 
   /* ---------- data ---------- */
+  function setEngine(state) {
+    const chip = $('#chipStatus');
+    const ok = state === 'running';
+    chip.className = ok ? 'chip-ok' : 'chip-bad';
+    chip.innerHTML = `<i class="dot"></i><span>${esc(ENGINE_TEXT[state] || state)}</span>`;
+    $('#recheck').hidden = ok;
+  }
+
   async function load() {
+    clearTimeout(retryTimer);
     const r = await fetch('/api/config');
     if (r.status === 401) return showLogin();
+    if (!r.ok) throw new Error('Could not load config');
     data = await r.json();
     showApp();
     $('#hostText').textContent = data.host;
     $('#chipPort').textContent = data.port;
-    const chip = $('#chipStatus');
-    const ok = data.xray === 'running';
-    chip.className = ok ? 'chip-ok' : 'chip-bad';
-    chip.innerHTML = `<i class="dot"></i><span>${ok ? 'Online' : 'Engine ' + esc(data.xray)}</span>`;
+    setEngine(data.xray);
+    // While the engine is not up yet, check again every 3 seconds (up to MAX_RETRIES)
+    if (data.xray === 'running') retries = 0;
+    else if (retries < MAX_RETRIES) { retries++; retryTimer = setTimeout(load, 3000); }
     render();
   }
 
@@ -108,13 +148,16 @@
   $('#hostBtn').addEventListener('click', () => copy(data.host, 'Host copied'));
   $('#linkBox').addEventListener('focus', (e) => e.target.select());
 
-  $('#saveQr').addEventListener('click', () => {
+  $('#savePng').addEventListener('click', async () => {
     const svg = qrCache[current]; if (!svg) return toast('QR not ready yet');
-    const blob = new Blob([svg], { type: 'image/svg+xml' });
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob); a.download = `${current}-qr.svg`; a.click();
-    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+    try { download(await svgToPng(svg), `${current}-qr.png`); toast('PNG saved'); }
+    catch (_) { toast('Could not make PNG'); }
   });
+  $('#saveSvg').addEventListener('click', () => {
+    const svg = qrCache[current]; if (!svg) return toast('QR not ready yet');
+    download(new Blob([svg], { type: 'image/svg+xml' }), `${current}-qr.svg`);
+  });
+  $('#recheck').addEventListener('click', () => { retries = 0; load().catch(() => toast('Cannot reach panel')); });
 
-  load().catch(showLogin);
+  load().catch((e) => { if (login.hidden && app.hidden) showLogin(); toast('Cannot reach panel. Refresh the page.'); });
 })();

@@ -57,6 +57,7 @@
           <li>TLS</li>
           <li>WebSocket</li>
         </ul>
+        <button class="ghost small" id="recheck" hidden>Check engine again</button>
       </div>
 
       <svg class="route" viewBox="0 0 420 120" role="img" aria-label="Traffic goes from your device through Cloud Run to the internet">
@@ -82,10 +83,11 @@
       <section class="panel" id="panel" aria-live="polite">
         <div class="qr-col">
           <div class="qr" id="qr" aria-label="QR code"></div>
-          <p class="hint">Scan with v2rayNG, Hiddify, NekoBox, Streisand or Shadowrocket.</p>
+          <p class="hint">Scan with v2rayNG, Hiddify, NekoBox, Streisand or Shadowrocket. Save as PNG to send to a phone.</p>
           <div class="qr-actions">
             <button class="primary" id="copyLink">Copy link</button>
-            <button class="ghost" id="saveQr">Save QR</button>
+            <button class="ghost" id="savePng" title="Save as PNG image">PNG</button>
+            <button class="ghost" id="saveSvg" title="Save as SVG image">SVG</button>
           </div>
         </div>
 

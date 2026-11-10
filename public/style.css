@@ -135,7 +135,9 @@ button { cursor: pointer; }
 .qr .qr-msg { color: #35505f; font-size: 13px; text-align: center; padding: 12px; }
 .hint { color: var(--muted); font-size: 13px; text-align: center; margin: 16px 0 18px; max-width: 26ch; }
 .qr-actions { display: flex; gap: 10px; width: 100%; }
-.qr-actions button { flex: 1; padding: 11px 8px; }
+.qr-actions button { flex: 1; padding: 11px 8px; font-size: 14px; }
+.ghost.small { margin-top: 14px; padding: 8px 14px; font-size: 13.5px; }
+.ghost:focus-visible, .primary:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; }
 
 .data-col { padding: 28px 30px; min-width: 0; }
 .data-col h2 { margin: 0 0 18px; font-size: 22px; letter-spacing: -.02em; }
@@ -184,6 +186,11 @@ textarea {
   .fields dt { grid-column: 1 / -1; }
   .tabs { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; width: 100%; }
   .tabs button { padding-inline: 8px; }
+}
+@media (pointer: coarse) {
+  .copy { padding: 10px 12px; min-height: 40px; }
+  .tabs button { min-height: 44px; }
+  .qr-actions button { min-height: 44px; }
 }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
