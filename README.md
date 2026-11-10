@@ -22,11 +22,20 @@ If Cloud Shell asks which project to use, run this first and then paste the comm
 gcloud config set project YOUR_PROJECT_ID
 ```
 
-Optional region or service name:
+The script then asks you, one at a time:
+
+1. **Region**: a numbered list of Cloud Run regions. Press Enter for `us-central1`, or type a number or a region name.
+2. **CPU**: `0.5`, `1`, `2` or `4` vCPU. Press Enter for `1`.
+3. **RAM**: only the sizes that work with the CPU you chose. With `0.5` vCPU the maximum is `512Mi`. Press Enter for `512Mi`.
+4. A summary, and **Deploy now? [Y/n]**.
+
+To skip the questions, set the values first:
 
 ```bash
-REGION=europe-west1 SERVICE=my-panel ./deploy.sh
+REGION=europe-west1 CPU=1 MEMORY=512Mi ./deploy.sh
 ```
+
+Other options: `SERVICE=my-panel` (service name), `MAX_INSTANCES=4` (maximum instances), and `DRY_RUN=1` (print the deploy command without running it).
 
 To update later after you push changes to GitHub, paste the same one-line command again. It re-clones and redeploys.
 
@@ -35,7 +44,7 @@ To update later after you push changes to GitHub, paste the same one-line comman
 Set environment variables on the service (this also changes the generated UUID and Trojan password unless you set them):
 
 ```bash
-gcloud run services update ghanizada-panel --region us-central1 \
+gcloud run services update ghanizada-panel --region REGION \
   --update-env-vars PANEL_PASSWORD=NewStrongPassword
 ```
 
@@ -59,7 +68,7 @@ Works with v2rayNG, NekoBox, Hiddify, Streisand, Shadowrocket and v2rayN.
 server.js        panel, login, QR API, WebSocket passthrough, Xray launcher
 public/          web panel (index.html, style.css, app.js)
 Dockerfile       Node + Xray-core
-deploy.sh        one-command Cloud Run deploy
+deploy.sh        interactive Cloud Run deploy (region, CPU, RAM)
 ```
 
 ## Notes
