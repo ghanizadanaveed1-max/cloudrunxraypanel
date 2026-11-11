@@ -44,6 +44,12 @@
       <button class="ghost" id="logout">Sign out</button>
     </header>
 
+    <nav class="views" role="tablist" aria-label="Sections">
+      <button role="tab" data-view="configs" aria-selected="true">My configs</button>
+      <button role="tab" data-view="users" aria-selected="false">Users <span class="count" id="userCount">0</span></button>
+    </nav>
+
+    <div id="viewConfigs">
     <section class="hero">
       <div class="hero-text">
         <p class="hero-label">Your Cloud Run endpoint</p>
@@ -104,9 +110,85 @@
         <span class="muted">Paste them into your client’s “Import from clipboard”.</span>
       </div>
     </main>
+    </div>
+
+    <!-- User management -->
+    <main class="content users-view" id="viewUsers" hidden>
+      <div class="stats">
+        <div class="stat"><span>Total users</span><b id="stTotal">0</b></div>
+        <div class="stat"><span>Active now</span><b id="stActive">0</b></div>
+        <div class="stat"><span>Traffic used</span><b id="stTraffic">0 B</b></div>
+      </div>
+      <p class="notice" id="persistNote" hidden>Users are stored on this instance only. They are lost if Cloud Run restarts it. Set <code>GCS_BUCKET</code> (see README) or use Export regularly.</p>
+
+      <div class="toolbar">
+        <input id="userSearch" type="search" placeholder="Search name or note" aria-label="Search users">
+        <select id="userFilter" aria-label="Filter">
+          <option value="all">All</option><option value="active">Active</option><option value="disabled">Disabled</option>
+          <option value="expired">Expired</option><option value="limited">Out of traffic</option>
+        </select>
+        <button class="primary" id="addUser">+ Add user</button>
+      </div>
+
+      <div id="userList" class="user-list" aria-live="polite"></div>
+
+      <div class="bulk">
+        <button class="ghost" id="exportUsers">Export backup</button>
+        <button class="ghost" id="importUsers">Import backup</button>
+        <input type="file" id="importFile" accept="application/json,.json" hidden>
+        <span class="muted">Importing replaces all current users.</span>
+      </div>
+    </main>
 
     <footer class="foot">Keep this page private. Anyone with these links can use your tunnel.</footer>
   </div>
+
+  <!-- Add / edit user -->
+  <dialog id="userDlg">
+    <form method="dialog" id="userForm" class="dlg">
+      <h2 id="userDlgTitle">Add user</h2>
+      <label>Name<input id="fName" maxlength="40" required placeholder="e.g. Ahmad"></label>
+      <div class="grid2">
+        <label>Traffic limit (GB)<input id="fLimit" type="number" min="0" step="any" value="0" inputmode="decimal"><small>0 = unlimited</small></label>
+        <label>Expires on<input id="fExpire" type="date"><small>Empty = never</small></label>
+      </div>
+      <div class="quick">
+        <button type="button" class="ghost small" data-days="30">+30 days</button>
+        <button type="button" class="ghost small" data-days="90">+90 days</button>
+        <button type="button" class="ghost small" data-days="365">+1 year</button>
+        <button type="button" class="ghost small" data-days="0">No expiry</button>
+      </div>
+      <label>Note<input id="fNote" maxlength="200" placeholder="Optional"></label>
+      <label class="check"><input id="fEnabled" type="checkbox" checked> Enabled</label>
+      <div id="editExtras" class="extras" hidden>
+        <button type="button" class="ghost small" id="btnReset">Reset traffic</button>
+        <button type="button" class="ghost small" id="btnRegen">New keys &amp; link</button>
+        <button type="button" class="ghost small danger" id="btnDelete">Delete user</button>
+      </div>
+      <p class="error" id="userErr" hidden></p>
+      <div class="dlg-actions">
+        <button type="button" class="ghost" data-close>Cancel</button>
+        <button type="submit" class="primary" id="userSave">Save</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- User configs -->
+  <dialog id="cfgDlg">
+    <div class="dlg">
+      <h2 id="cfgTitle">User</h2>
+      <div class="tabs" id="cfgTabs" role="tablist"></div>
+      <div class="cfg-body">
+        <div class="qr" id="cfgQr"></div>
+        <div>
+          <textarea id="cfgLink" readonly rows="5" spellcheck="false"></textarea>
+          <p class="hint" id="cfgHint"></p>
+          <button class="primary" id="cfgCopy">Copy</button>
+        </div>
+      </div>
+      <div class="dlg-actions"><button class="ghost" data-close>Close</button></div>
+    </div>
+  </dialog>
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
   <script src="/app.js"></script>
