@@ -8,7 +8,8 @@
 #   REGION=europe-west1 CPU=1 MEMORY=512Mi ./deploy.sh
 # Other options:
 #   SERVICE=my-panel      service name            (default: ghanizada-panel)
-#   MAX_INSTANCES=4       maximum instances       (default: 4)
+#   MAX_INSTANCES=1       maximum instances       (default: 1, keeps user list and traffic counters in one place)
+#   GCS_BUCKET=my-bucket  keep the user list in a Cloud Storage bucket so it survives restarts
 #   DRY_RUN=1             show what would run, deploy nothing
 set -euo pipefail
 
@@ -16,7 +17,8 @@ set -euo pipefail
 trap 'echo; echo "Stopped at line $LINENO (exit code $?). Nothing was deployed." >&2' ERR
 
 SERVICE="${SERVICE:-ghanizada-panel}"
-MAX_INSTANCES="${MAX_INSTANCES:-4}"
+MAX_INSTANCES="${MAX_INSTANCES:-1}"
+GCS_BUCKET="${GCS_BUCKET:-}"
 
 # Answers come from the terminal. INPUT is only for testing with a file.
 if [ -n "${INPUT:-}" ]; then exec < "$INPUT"; fi
@@ -168,7 +170,8 @@ run gcloud run deploy "$SERVICE" \
   --memory "$MEMORY" \
   --no-cpu-throttling \
   --execution-environment gen2 \
-  --max-instances "$MAX_INSTANCES"
+  --max-instances "$MAX_INSTANCES" \
+  ${GCS_BUCKET:+--set-env-vars "GCS_BUCKET=$GCS_BUCKET"}
 
 if [ -z "${DRY_RUN:-}" ]; then
   URL="$(gcloud run services describe "$SERVICE" --region "$REGION" --format='value(status.url)' 2>/dev/null || true)"
