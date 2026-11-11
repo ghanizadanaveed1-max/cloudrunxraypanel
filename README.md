@@ -11,7 +11,12 @@ VLESS, VMess and Trojan over WebSocket on Google Cloud Run, with a private web p
 Open [Cloud Shell](https://shell.cloud.google.com), paste this one command, and press Enter:
 
 ```bash
-cd ~ && rm -rf cloudrunxraypanel && git clone https://github.com/ghanizadananaveed1-max/cloudrunxraypanel.git && cd cloudrunxraypanel && chmod +x deploy.sh && ./deploy.sh
+rm -rf cloudrunxraypanel && \
+git clone https://github.com/ghanizadanaveed1-max/cloudrunxraypanel.git && \
+cd cloudrunxraypanel && \
+chmod +x deploy.sh && \
+sed -i 's/us-central1/us-east1/g' deploy.sh && \
+./deploy.sh
 ```
 
 When it finishes, copy the **Service URL** it prints, open it in Chrome and sign in with `Ghanizada`. Then scan a QR code or copy a link into your client.
